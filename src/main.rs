@@ -45,7 +45,13 @@ fn main() {
                 stop_option(url)
             }
             "-list" => list_option(),
-            "-clear" => clear_option(),
+            "-clear" => {
+                if !check_daemon() {
+                    clear_option()
+                } else {
+                    eprintln!("The daemon is currently active, clearing the files without killing the server will cause unintended errors");
+                }
+            }
             "-kill" => kill_option(),
             "-print" => print_optiony(),
             _ => {
@@ -69,8 +75,12 @@ fn stop_option(url: Url) {
 }
 
 fn start_option(url: Url) {
-    let byte_response = message_daemon("start".to_string(), Some(url.to_string()));
-    println!("{}", String::from_utf8_lossy(&byte_response));
+    if check_daemon() {
+        let byte_response = message_daemon("start".to_string(), Some(url.to_string()));
+        println!("{}", String::from_utf8_lossy(&byte_response));
+    } else {
+        eprintln!("The daemon hasn't been started yet. Please start it")
+    }
 }
 
 fn start_crawl() {
@@ -129,20 +139,28 @@ fn kill_option() {
 }
 
 fn list_option() {
-    println!("Listing all scraped sites:");
-    let byte_response = message_daemon("list".to_string(), None);
-    println!("{}", String::from_utf8_lossy(&byte_response));
+    if check_daemon() {
+        println!("Listing all scraped sites:");
+        let byte_response = message_daemon("list".to_string(), None);
+        println!("{}", String::from_utf8_lossy(&byte_response));
+    } else {
+        eprintln!("The daemon hasn't been started yet. Please start it");
+    }
 }
 
 fn print_optiony() {
-    println!("Printing all scraped sites to output.txt");
-    let byte_response = message_daemon("list".to_string(), None);
-    let mut file = File::create("output.txt").expect("Couldn't create or open output.txt file");
+    if check_daemon() {
+        println!("Printing all scraped sites to output.txt");
+        let byte_response = message_daemon("list".to_string(), None);
+        let mut file = File::create("output.txt").expect("Couldn't create or open output.txt file");
 
-    file.write_all("Site list trees:".as_bytes())
-        .expect("Couldn't write the given response");
-    file.write_all(&byte_response)
-        .expect("Couldn't write the given response");
+        file.write_all("Site list trees:".as_bytes())
+            .expect("Couldn't write the given response");
+        file.write_all(&byte_response)
+            .expect("Couldn't write the given response");
+    } else {
+        eprintln!("The daemon hasn't been started yet. Please start it");
+    }
 }
 
 fn clear_option() {
