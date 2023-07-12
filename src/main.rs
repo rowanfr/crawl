@@ -53,9 +53,11 @@ fn main() {
                 }
             }
             "-kill" => kill_option(),
-            "-print" => print_optiony(),
+            "-print" => print_option(),
+            "-h" => help_option(),
             _ => {
-                println!("No recognized option was given");
+                println!("No recognized option was given\n");
+                help_option();
 
                 exit(-1);
             }
@@ -148,7 +150,7 @@ fn list_option() {
     }
 }
 
-fn print_optiony() {
+fn print_option() {
     if check_daemon() {
         println!("Printing all scraped sites to output.txt");
         let byte_response = message_daemon("list".to_string(), None);
@@ -180,4 +182,15 @@ fn clear_option() {
     } else {
         eprintln!("Failed to read directory.");
     }
+}
+
+fn help_option() {
+    println!("The application consists of a command line client and a local service (daemon) which performs the actual web crawling. The communication between client and server uses a form of IPC mechanism. For each URL, the Web Crawler creates a tree of links with the root of the tree being the root URL.\n");
+    println!("The commands for the application are as follows");
+    println!("-start url\n  This starts the application and tasks the daemon with scraping a url if both that url and daemon exist");
+    println!("-stop url\n   This stops the url from being scraped");
+    println!("-list\n   This lists all scraped urls to the terminal");
+    println!("-clear\n  This clears all files related to the daemon");
+    println!("-kill\n   This kills the daemon and then clears all files related to the daemon");
+    println!("-print\n  This prints out the scraped urls to output.txt")
 }

@@ -1,3 +1,4 @@
+#[allow(clippy::single_component_path_imports)]
 use libc;
 
 use std::collections::{HashMap, HashSet, VecDeque};
@@ -54,13 +55,11 @@ pub fn check_daemon() -> bool {
 }
 
 pub fn message_daemon(command: String, website: Option<String>) -> Vec<u8> {
-    #[allow(unused_assignments)]
-    let mut message_to_server = String::new();
-    if let Some(website) = website {
-        message_to_server = format!("{} {}", command.as_str(), website.as_str())
+    let message_to_server = if let Some(website) = website {
+        format!("{} {}", command.as_str(), website.as_str())
     } else {
-        message_to_server = format!("{}", command.as_str())
-    }
+        format!("{}", command.as_str())
+    };
 
     let mut byte_response = Vec::new();
     tokio::runtime::Builder::new_multi_thread()
@@ -191,15 +190,17 @@ pub fn daemon_server() {
                                     job_queue.push_back(&mut node);
                                     while let Some(task) = job_queue.pop_front() {
                                         print!("Current site being scanned: {}", task);
-                                        tree_url_get(
+                                        let result = tree_url_get(
                                             &mut (*task),
                                             st_url.clone().domain()
                                                 .expect("The Domain was unable to be extracted from the url"),
                                             &mut site_set,
                                             &mut job_queue,
                                         )
-                                        .await
-                                        .expect("Unable to parse the tree URL");
+                                        .await;
+                                        if let Err(e) = result {
+                                            eprintln!("There was an error in parsing the URL or scraping the site. The error is: {}",&*e)
+                                        }
                                     }
                                     node
                                 });
@@ -249,6 +250,8 @@ pub fn daemon_server() {
                     }
                 }
             }
+            //This is just used as a conveniant identifier for return type in the compiler and is optomized out as a value due to being unreachable
+            #[allow(unreachable_code)]
             Result::<(), Box<dyn std::error::Error>>::Ok(())
         },)
     .expect("Could not create a tokio runtime environment");

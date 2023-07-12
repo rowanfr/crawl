@@ -55,6 +55,8 @@ impl SiteTree {
         output_string: &mut String,
     ) {
         let mut buffer_string = String::new();
+        //This is an area where clippy is incorrect as this range loop is necessary to iterate to a specified depth not related to the index
+        //This can be optimized further by using pointer dereferencing to avoid safety checks, but those checks are ultimatly trivial to perform and helpful overall
         #[allow(clippy::needless_range_loop)]
         for index in 0..depth {
             if depth - 1 == index {
