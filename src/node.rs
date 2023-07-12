@@ -73,15 +73,13 @@ mod tests {
                     .await
                     .expect("Wasn't able to parse the tree URL");
                 }
-                //println!("Generated node:\n{}", node); ////This caused an error due to the queue itself borrowing the reference//
             });
-        //println!("Generated node:\n{}", node); ////This caused an error due to the queue itself borrowing the reference//
         println!("\nJob queue iterator: ");
         for value in job_queue.iter() {
             print!("{}", value);
         }
         println!();
-        println!("Generated node:\n{}", node); ////This is due to the queue itself borrowing the reference
+        println!("Generated node:\n{}", node);
         println!("Hash set iterator: ");
         for value in site_set.iter() {
             println!("{}", value);
@@ -92,7 +90,7 @@ mod tests {
     }
 
     #[test]
-    fn test_queue() {
+    fn test_long_queue() {
         let url = Url::parse("https://spideroak.com").expect("Couldn't parse the given URL");
         let mut node = SiteTree {
             current_site: url.clone(),
@@ -111,26 +109,26 @@ mod tests {
                 {
                     while let Some(task) = job_queue.pop_front() {
                         print!("Current site being scanned: {}", task);
-                        tree_url_get(
+                        let tree_result = tree_url_get(
                             &mut (*task),
                             url.domain()
                                 .expect("The Domain was unable to be extracted from the url"),
                             &mut site_set,
                             &mut job_queue,
                         )
-                        .await
-                        .expect("Unable to parse the tree URL");
+                        .await;
+                        if let Err(e) = tree_result {
+                            eprintln!("There was an error in parsing the URL or scraping the site. The error is: {}",&*e)
+                        }
                     }
                 }
-                //println!("Generated node:\n{}", node); ////This caused an error due to the queue itself borrowing the reference//
             });
-        //println!("Generated node:\n{}", node); ////This caused an error due to the queue itself borrowing the reference//
         println!("\nJob queue iterator: ");
         for value in job_queue.iter() {
             print!("{}", value);
         }
         println!();
-        println!("Generated node:\n{}", node); ////This is due to the queue itself borrowing the reference
+        println!("Generated node:\n{}", node);
         println!("Hash set iterator: ");
         for value in site_set.iter() {
             println!("{}", value);
@@ -167,15 +165,13 @@ mod tests {
                         .expect("Unable to parse the tree URL");
                     }
                 }
-                //println!("Generated node:\n{}", node); ////This caused an error due to the queue itself borrowing the reference//
             });
-        //println!("Generated node:\n{}", node); ////This caused an error due to the queue itself borrowing the reference//
         println!("\nJob queue iterator: ");
         for value in job_queue.iter() {
             print!("{}", value);
         }
         println!();
-        println!("Generated node:\n{}", node); ////This is due to the queue itself borrowing the reference
+        println!("Generated node:\n{}", node);
         println!("Hash set iterator: ");
         for value in site_set.iter() {
             println!("{}", value);
@@ -319,7 +315,7 @@ pub async fn tree_url_get<'a>(
                     };
                     sub_sites.push(site_tree);
                     // Handle the case when URL parsing fails
-                    //Error will cause the rest to not propogate
+                    // Error will cause the rest to not propogate
                     href_errors.push(Ok(()))
                 };
             } else {

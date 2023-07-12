@@ -58,7 +58,7 @@ pub fn message_daemon(command: String, website: Option<String>) -> Vec<u8> {
     let message_to_server = if let Some(website) = website {
         format!("{} {}", command.as_str(), website.as_str())
     } else {
-        format!("{}", command.as_str())
+        command
     };
 
     let mut byte_response = Vec::new();
@@ -150,11 +150,11 @@ pub fn daemon_server() {
                                     argument
                                 );
                                 if processes.contains_key(argument){
-                                    response = String::from("Stopped scraping ") + argument.clone();
+                                    response = String::from("Stopped scraping ") + argument;
                                     processes.get(argument).expect("Couldn't get value from hash map").abort();
                                     processes.remove(argument);
                                 } else {
-                                    response = String::from("The daemon is not scraping ") + argument.clone();
+                                    response = String::from("The daemon is not scraping ") + argument;
                                 }
                             }
                             "start" => {
@@ -165,7 +165,7 @@ pub fn daemon_server() {
                                 #[allow(clippy::map_entry)]
                                 if !processes.contains_key(&argument.to_string()) && !completed.contains_key(&argument.to_string()) {
                                     response = String::from("Started scraping ")
-                                    + argument.clone();
+                                    + argument;
                                 let st_url = if let Ok(st_url) =
                                     parse_url(&argument.to_string())
                                 {
@@ -190,7 +190,7 @@ pub fn daemon_server() {
                                     job_queue.push_back(&mut node);
                                     while let Some(task) = job_queue.pop_front() {
                                         print!("Current site being scanned: {}", task);
-                                        let result = tree_url_get(
+                                        let tree_result = tree_url_get(
                                             &mut (*task),
                                             st_url.clone().domain()
                                                 .expect("The Domain was unable to be extracted from the url"),
@@ -198,7 +198,7 @@ pub fn daemon_server() {
                                             &mut job_queue,
                                         )
                                         .await;
-                                        if let Err(e) = result {
+                                        if let Err(e) = tree_result {
                                             eprintln!("There was an error in parsing the URL or scraping the site. The error is: {}",&*e)
                                         }
                                     }
@@ -207,7 +207,7 @@ pub fn daemon_server() {
                                 processes.insert(argument.to_string(), background_process);
                                 } else {
                                     response = String::from("Already scraping or scraped ")
-                                    + argument.clone();
+                                    + argument;
                                 }
                             }
                             "list" => {

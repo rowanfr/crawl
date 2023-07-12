@@ -39,7 +39,7 @@ impl SiteTree {
         let mut last: Vec<bool> = Vec::new();
         let mut output_string = String::new();
         self.print_recursive(0, spacing, &mut last, &mut output_string);
-        format!("{}", output_string)
+        output_string.to_string()
     }
 
     #[allow(dead_code)]
