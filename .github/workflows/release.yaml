@@ -7,6 +7,7 @@ on:
 
 env:
   binary: crawl
+  add_binaries_to_github_release: true
 
 
 jobs:
